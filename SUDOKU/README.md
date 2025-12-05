@@ -80,7 +80,7 @@ Implementación avanzada utilizando el algoritmo **Non-dominated Sorting Genetic
 
 ###  Análisis de Resultados
 * **Tiempo Promedio:** Variable (~2 minutos con suerte, hasta 10+ minutos).
-* **Variabilidad de Convergencia:** El algoritmo es robusto buscando el Frente de Pareto (0,0,0). Puede resolverlo en intentos tempranos (Intento #4) o extenderse mucho más (Intento #41) dependiendo de la complejidad del mínimo local donde caiga.
+* **Variabilidad de Convergencia:** El algoritmo es robusto buscando el Frente de Pareto (0,0,0). Puede resolverlo en intentos tempranos (Intento #4) o extenderse mucho más dependiendo de la complejidad del mínimo local donde caiga.
 * **Ventaja:** Mantiene la diversidad poblacional mejor que los métodos tradicionales, evitando la convergencia prematura a soluciones erróneas, aunque a un costo computacional mayor.
 
 ![Resultado NSGA-III](img/nsgaIII.png)
@@ -91,7 +91,7 @@ Implementación avanzada utilizando el algoritmo **Non-dominated Sorting Genetic
 
 Tras analizar las tres estrategias, se concluye que **la implementación con DEAP (Mono-objetivo) es la más eficiente para este problema específico**.
 
-Aunque **NSGA-III** demostró ser una herramienta poderosa capaz de resolver el problema mediante la descomposición de objetivos, el Sudoku es inherentemente un problema de satisfacción de restricciones única (llegar a 0 errores total). El uso de NSGA-III añade una sobrecarga computacional (cálculo de frentes de Pareto y puntos de referencia) que, aunque académica y técnicamente interesante, resulta en un "Overkill" para este caso. **DEAP estándar** ofreció la mejor relación entre simplicidad de código y velocidad de convergencia.
+Aunque **NSGA-III** demostró ser una herramienta poderosa capaz de resolver el problema mediante la descomposición de objetivos, el Sudoku es inherentemente un problema de satisfacción de restricciones única (llegar a 0 errores total). El uso de NSGA-III añade una sobrecarga computacional que, aunque académica y técnicamente interesante, resulta en un "Overkill" para este caso. **DEAP estándar** ofreció la mejor relación entre simplicidad de código y velocidad de convergencia.
 
 | Método | Configuración | Tiempo Aprox. | Estabilidad | Observación |
 | :--- | :--- | :--- | :--- | :--- |
