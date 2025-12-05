@@ -18,13 +18,32 @@ El proyecto se divide en tres enfoques evolutivos distintos para resolver el mis
 
 ---
 
+##  Requisitos y Ejecución (VS Code)
+
+Para asegurar que los códigos funcionen correctamente, sigue estos pasos de instalación en Visual Studio Code:
+
+1.  **Instalar Dependencias:**
+    Abre la terminal en VS Code (`Ctrl + ñ`) y ejecuta el siguiente comando para instalar las librerías necesarias (DEAP y NumPy):
+    ```bash
+    pip install deap numpy
+    ```
+
+2.  **Ejecutar el Código:**
+    Abre el archivo que deseas probar (ej. `con_deap.py`) y presiona el botón de **Play** (▷) en la esquina superior derecha, o escribe en la terminal:
+    ```bash
+    python con_deap.py
+    ```
+
+---
+
 ## 1. Implementación Manual (`desde_cero.py`)
 
 Diseñada para comprender la lógica fundamental de los operadores genéticos (selección por torneo, cruce y mutación) sin dependencia de librerías externas. Utiliza objetos y listas nativas de Python.
 
-> ** Parámetros de Control:** Para garantizar una comparativa justa con la versión de librería, se utilizaron los **mismos hiperparámetros** que en la implementación con DEAP:
+> **Parámetros de Control:** Para garantizar una comparativa justa con la versión de librería, se utilizaron los mismos hiperparámetros:
 > * **Tamaño de Población:** 600 individuos.
 > * **Probabilidad de Mutación:** 0.1 (10%).
+> * **Nota Importante:** Se mantiene la mutación en un 10% porque aumentar este valor transformaría el algoritmo en una búsqueda por azar (aleatoria), perdiendo la inteligencia evolutiva que buscamos preservar.
 
 ###  Análisis de Resultados
 * **Tiempo de Ejecución:** Variable (1 a 4 minutos).
@@ -40,7 +59,7 @@ Diseñada para comprender la lógica fundamental de los operadores genéticos (s
 
 Uso de **Distributed Evolutionary Algorithms in Python (DEAP)** para optimizar la gestión de memoria y estructuras de datos bajo un enfoque clásico (mono-objetivo). El objetivo único es minimizar la suma de errores (Columnas + Cajas).
 
-> **⚙️ Parámetros de Control:** Configuración idéntica a la versión manual (**Población: 600**, **Mutación: 10%**) para medir la diferencia pura de rendimiento computacional.
+> **Parámetros de Control:** Configuración idéntica a la versión manual (**Población: 600**, **Mutación: 10%**) para medir la diferencia pura de rendimiento computacional.
 
 ###  Análisis de Resultados
 * **Tiempo Promedio:** **Rápido (40 segundos a 1.5 minutos).**
@@ -57,7 +76,7 @@ Implementación avanzada utilizando el algoritmo **Non-dominated Sorting Genetic
 
 ###  Adaptación Técnica
 * **Objetivos Divididos:** Minimizar errores en **Filas**, **Columnas** y **Cajas** independientemente. Esto permite al algoritmo atacar defectos específicos sin destruir estructuras correctas.
-* **Estrategia de "Intensidad Compensada":** Para respetar la restricción académica de **Probabilidad de Mutación = 0.1 (10%)**, se diseñó un operador personalizado que realiza **4 cambios (swaps)** internos cada vez que se activa la mutación, compensando la baja frecuencia con alta intensidad.
+* **Estrategia de "Intensidad Compensada":** Se mantiene la **Probabilidad de Mutación en 0.1 (10%)** para evitar que el proceso se convierta en algo puramente aleatorio o de azar. Sin embargo, para compensar esta baja frecuencia, se diseñó un operador personalizado que realiza **4 cambios (swaps)** internos cada vez que se activa la mutación, logrando alta intensidad en los cambios sin romper la lógica evolutiva.
 
 ###  Análisis de Resultados
 * **Tiempo Promedio:** Variable (~2 minutos con suerte, hasta 10+ minutos).
