@@ -58,7 +58,7 @@ Implementación avanzada utilizando el algoritmo **Non-dominated Sorting Genetic
 * **Variabilidad de Convergencia:** El algoritmo es robusto pero variable. Dependiendo de la complejidad del tablero y el azar, puede resolverlo tempranamente (ej. **Intento #4**) o requerir una búsqueda más extensa (ej. **Intento #41**).
 * **Ventaja:** A pesar de los reinicios, el algoritmo mantiene la diversidad genética mejor que los métodos tradicionales gracias a la búsqueda en el "Frente de Pareto" (0,0,0).
 
-![Resultado NSGA-III](img/nsgalll.png)
+![Resultado NSGA-III](img/nsgaIII.png)
 
 ---
 
