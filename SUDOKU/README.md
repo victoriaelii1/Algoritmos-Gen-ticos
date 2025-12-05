@@ -62,7 +62,7 @@ Implementación avanzada utilizando el algoritmo **Non-dominated Sorting Genetic
 
 ---
 
-## ✅ Conclusión General y Veredicto
+##  Conclusión General y Veredicto
 
 Tras analizar las tres estrategias, se concluye que **la implementación con DEAP (Mono-objetivo) es la más indicada para este problema**.
 
