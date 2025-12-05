@@ -8,7 +8,7 @@ from deap import base, creator, tools, algorithms
 
 # --- PARÁMETROS EVOLUTIVOS ---
 TAMANO_POBLACION = 600    # Población alta para compensar baja mutación
-MAX_GENERACIONES = 200    # Generaciones cortas (si no sale rápido, mejor reiniciar)
+MAX_GENERACIONES = 150    # Generaciones cortas (si no sale rápido, mejor reiniciar)
 INTENTOS_MAXIMOS = 100    # Reintentar muchas veces automáticamente
 
 PROB_CRUCE = 0.8          # Alta probabilidad de mezcla (Recombinación)

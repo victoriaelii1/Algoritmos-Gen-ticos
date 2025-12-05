@@ -6,7 +6,7 @@ from deap import base, creator, tools
 # -------------------------------------------------------------------
 # 1. PARÁMETROS DEL ALGORITMO (CONFIGURACIÓN RÁPIDA)
 # -------------------------------------------------------------------
-TAMANO_POBLACION = 2000        # Población alta para mayor diversidad inicial
+TAMANO_POBLACION = 600        # Población alta para mayor diversidad inicial
 MAX_GENERACIONES_POR_INTENTO = 150 # Reinicio rápido si se estanca
 PROB_CRUCE = 0.9
 PROB_MUTACION = 0.1
@@ -29,19 +29,17 @@ TABLERO_INICIAL = [
 ]
 
 # -------------------------------------------------------------------
-# 2. FUNCIÓN PARA IMPRIMIR BONITO (NUEVA)
+# 2. FUNCIÓN PARA IMPRIMIR BONITO
 # -------------------------------------------------------------------
 def imprimir_tablero_bonito(tablero):
     print(" -----------------------")
     for i, fila in enumerate(tablero):
-        # Cada 3 filas imprimimos una línea horizontal divisoria
         if i > 0 and i % 3 == 0:
             print("|-------+-------+-------|")
         
         linea = "| "
         for j, val in enumerate(fila):
             linea += f"{val} "
-            # Cada 3 columnas imprimimos una barra vertical
             if (j + 1) % 3 == 0 and j < 8:
                 linea += "| "
         linea += "|"
@@ -168,7 +166,6 @@ def main():
             print("*"*50)
             
             mejor_final = tools.selBest(poblacion, 1)[0]
-            # AQUÍ LLAMAMOS A LA FUNCIÓN DE IMPRESIÓN BONITA
             imprimir_tablero_bonito(mejor_final)
             
             print("\nEl tablero es una solución válida.")

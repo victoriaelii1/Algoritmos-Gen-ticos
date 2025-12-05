@@ -10,23 +10,27 @@ Este repositorio contiene el desarrollo y análisis comparativo de tres estrateg
 
 ##  Estructura del Proyecto
 
-El proyecto se divide en tres enfoques evolutivos:
+El proyecto se divide en tres enfoques evolutivos distintos para resolver el mismo tablero de Sudoku:
 
-1.  **`desde_cero.py`**: Implementación manual (Python puro).
-2.  **`con_deap.py`**: Implementación optimizada con librería DEAP (Mono-objetivo).
-3.  **`NSGAIII.py`**: Enfoque Multi-objetivo con selección NSGA-III.
+1.  **`desde_cero.py`**: Implementación manual (Python puro sin librerías de IA).
+2.  **`con_deap.py`**: Implementación optimizada con librería **DEAP** (Mono-objetivo).
+3.  **`NSGAIII.py`**: Enfoque Multi-objetivo con selección **NSGA-III**.
 
 ---
 
 ## 1. Implementación Manual (`desde_cero.py`)
 
-Diseñada para comprender la lógica fundamental de los operadores genéticos (selección por torneo, cruce y mutación) sin dependencia de librerías externas.
+Diseñada para comprender la lógica fundamental de los operadores genéticos (selección por torneo, cruce y mutación) sin dependencia de librerías externas. Utiliza objetos y listas nativas de Python.
+
+> ** Parámetros de Control:** Para garantizar una comparativa justa con la versión de librería, se utilizaron los **mismos hiperparámetros** que en la implementación con DEAP:
+> * **Tamaño de Población:** 600 individuos.
+> * **Probabilidad de Mutación:** 0.1 (10%).
 
 ###  Análisis de Resultados
-* **Tiempo de Ejecución:** Variable (10 a 25+ minutos).
-* **Comportamiento:** Alta inestabilidad estocástica.
-* **Cuello de Botella:** La clonación de objetos (`copy.deepcopy`) y la falta de optimización nativa de Python saturan el procesador.
-* **Conclusión:** Funcional para fines didácticos, pero computacionalmente costosa debido a la dificultad para escapar de óptimos locales con una tasa de mutación baja (0.1).
+* **Tiempo de Ejecución:** Variable (1 a 4 minutos).
+* **Comportamiento:** Alta inestabilidad estocástica. Depende enteramente de la "suerte" en la generación inicial.
+* **Cuello de Botella:** La gestión de memoria en Python puro (creación y destrucción de objetos `Individuo`) y la clonación profunda (`deepcopy`) limitan la velocidad de las generaciones.
+* **Conclusión:** Funcional para fines didácticos, pero computacionalmente costosa. A igualdad de condiciones (Población 600), es notablemente más lenta que la versión optimizada.
 
 ![Resultado Manual](img/cero.png)
 
@@ -34,12 +38,14 @@ Diseñada para comprender la lógica fundamental de los operadores genéticos (s
 
 ## 2. Implementación con Librería DEAP (`con_deap.py`)
 
-Uso de **Distributed Evolutionary Algorithms in Python (DEAP)** para optimizar la gestión de memoria y estructuras de datos bajo un enfoque clásico (mono-objetivo).
+Uso de **Distributed Evolutionary Algorithms in Python (DEAP)** para optimizar la gestión de memoria y estructuras de datos bajo un enfoque clásico (mono-objetivo). El objetivo único es minimizar la suma de errores (Columnas + Cajas).
+
+> **⚙️ Parámetros de Control:** Configuración idéntica a la versión manual (**Población: 600**, **Mutación: 10%**) para medir la diferencia pura de rendimiento computacional.
 
 ###  Análisis de Resultados
-* **Tiempo Promedio:** Rápido (~1.5 a 5 min dependiendo de la suerte inicial).
-* **Variabilidad:** Al ser un proceso estocástico, el número de intentos requeridos fluctúa. En pruebas realizadas, la solución se encontró en rangos diversos (desde el **Intento #3** hasta el **Intento #16**).
-* **Justificación Técnica:** La eficiencia de DEAP permite procesar ~1.5 millones de individuos en segundos. Esto hace viable la estrategia de "Fuerza Bruta Inteligente": realizar múltiples reinicios rápidos hasta encontrar una semilla favorable.
+* **Tiempo Promedio:** **Rápido (40 segundos a 1.5 minutos).**
+* **Variabilidad:** Al ser un proceso estocástico, el número de intentos requeridos fluctúa, pero el sistema de reinicio rápido permite encontrar solución en pocos minutos.
+* **Justificación Técnica:** La eficiencia interna de DEAP (usando Numpy y C bajo la capa) permite procesar los mismos 600 individuos mucho más rápido que la versión manual. Esto hace viable la estrategia de **"Fuerza Bruta Inteligente"**: si un intento no converge en 150 generaciones, se reinicia inmediatamente hasta encontrar una semilla favorable.
 
 ![Resultado DEAP](img/deap.png)
 
@@ -47,16 +53,16 @@ Uso de **Distributed Evolutionary Algorithms in Python (DEAP)** para optimizar l
 
 ## 3. Enfoque Multi-objetivo NSGA-III (`NSGAIII.py`)
 
-Implementación avanzada utilizando el algoritmo **Non-dominated Sorting Genetic Algorithm III**. Se transformó el Sudoku de un problema mono-objetivo a uno multi-objetivo.
+Implementación avanzada utilizando el algoritmo **Non-dominated Sorting Genetic Algorithm III**. Se transformó el Sudoku de un problema mono-objetivo a uno multi-objetivo para mantener diversidad genética.
 
 ###  Adaptación Técnica
 * **Objetivos Divididos:** Minimizar errores en **Filas**, **Columnas** y **Cajas** independientemente. Esto permite al algoritmo atacar defectos específicos sin destruir estructuras correctas.
-* **Estrategia de "Intensidad Compensada":** Para respetar la restricción académica de **Probabilidad de Mutación = 0.1 (10%)**, se diseñó un operador personalizado que realiza **4 cambios (swaps)** internos cada vez que se activa la mutación.
+* **Estrategia de "Intensidad Compensada":** Para respetar la restricción académica de **Probabilidad de Mutación = 0.1 (10%)**, se diseñó un operador personalizado que realiza **4 cambios (swaps)** internos cada vez que se activa la mutación, compensando la baja frecuencia con alta intensidad.
 
 ###  Análisis de Resultados
-* **Tiempo Promedio:** ~2 a 8 minutos.
-* **Variabilidad de Convergencia:** El algoritmo es robusto pero variable. Dependiendo de la complejidad del tablero y el azar, puede resolverlo tempranamente (ej. **Intento #4**) o requerir una búsqueda más extensa (ej. **Intento #41**).
-* **Ventaja:** A pesar de los reinicios, el algoritmo mantiene la diversidad genética mejor que los métodos tradicionales gracias a la búsqueda en el "Frente de Pareto" (0,0,0).
+* **Tiempo Promedio:** Variable (~2 minutos con suerte, hasta 10+ minutos).
+* **Variabilidad de Convergencia:** El algoritmo es robusto buscando el Frente de Pareto (0,0,0). Puede resolverlo en intentos tempranos (Intento #4) o extenderse mucho más (Intento #41) dependiendo de la complejidad del mínimo local donde caiga.
+* **Ventaja:** Mantiene la diversidad poblacional mejor que los métodos tradicionales, evitando la convergencia prematura a soluciones erróneas, aunque a un costo computacional mayor.
 
 ![Resultado NSGA-III](img/nsgaIII.png)
 
@@ -64,12 +70,12 @@ Implementación avanzada utilizando el algoritmo **Non-dominated Sorting Genetic
 
 ##  Conclusión General y Veredicto
 
-Tras analizar las tres estrategias, se concluye que **la implementación con DEAP (Mono-objetivo) es la más indicada para este problema**.
+Tras analizar las tres estrategias, se concluye que **la implementación con DEAP (Mono-objetivo) es la más eficiente para este problema específico**.
 
-Aunque **NSGA-III** demostró ser una herramienta poderosa capaz de resolver el problema mediante la descomposición de objetivos, el Sudoku es inherentemente un problema de satisfacción de restricciones única (llegar a 0 errores). El uso de NSGA-III añade una sobrecarga computacional (cálculo de frentes de Pareto y puntos de referencia) que, aunque académica y técnicamente interesante, resulta menos directa que la optimización pura de **DEAP estándar**, la cual ofreció la mejor relación entre simplicidad de código y velocidad de convergencia.
+Aunque **NSGA-III** demostró ser una herramienta poderosa capaz de resolver el problema mediante la descomposición de objetivos, el Sudoku es inherentemente un problema de satisfacción de restricciones única (llegar a 0 errores total). El uso de NSGA-III añade una sobrecarga computacional (cálculo de frentes de Pareto y puntos de referencia) que, aunque académica y técnicamente interesante, resulta en un "Overkill" para este caso. **DEAP estándar** ofreció la mejor relación entre simplicidad de código y velocidad de convergencia.
 
-| Método | Tiempo Aprox. | Estabilidad | Observación |
-| :--- | :--- | :--- | :--- |
-| **Manual** | 10 - 25+ min | Baja | Alta dependencia del azar inicial y procesamiento lento. |
-| **DEAP** | 1 - 5 min | **Óptima** | **Mejor relación costo-beneficio computacional.** |
-| **NSGA-III** | 2 - 8 min | Muy Alta | Excelente capacidad de exploración, pero con mayor costo computacional ("Overkill"). |
+| Método | Configuración | Tiempo Aprox. | Estabilidad | Observación |
+| :--- | :--- | :--- | :--- | :--- |
+| **Manual** | Pob: 600 / Mut: 10% | 1 - 4 min | Baja | Alta dependencia del azar inicial. Procesamiento limitado por Python puro. |
+| **DEAP** | Pob: 600 / Mut: 10% | **40s - 1.5 min** | **Óptima** | **Mejor rendimiento a igualdad de parámetros. Velocidad superior gracias a optimización.** |
+| **NSGA-III** | Pob: 1000 / Mut: 10% | 2 - 10+ min | Muy Alta | Excelente exploración teórica, pero con sobrecarga computacional innecesaria para Sudoku. |

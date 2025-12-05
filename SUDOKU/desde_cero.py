@@ -1,14 +1,14 @@
 import random
 
 # -------------------------------------------------------------------
-# 1. PARÁMETROS (Ajustados para velocidad)
+# 1. PARÁMETROS (IGUALADOS A DEAP Y NSGA-III)
 # -------------------------------------------------------------------
-TAMANO_POBLACION = 1000
-MAX_GENERACIONES = 500  # Generaciones por intento
+TAMANO_POBLACION = 600   # Igual que en DEAP
+MAX_GENERACIONES = 150   # Igual que en DEAP
 PROB_CRUCE = 0.9
-PROB_MUTACION = 0.2     # Un poco más alta ayuda a no estancarse
+PROB_MUTACION = 0.1      # 10% 
 PORCENTAJE_ELITISMO = 0.1
-TAMANO_TORNEO = 3       # Torneo más pequeño es más rápido
+TAMANO_TORNEO = 3        
 
 # -------------------------------------------------------------------
 # TABLERO INICIAL
@@ -25,8 +25,7 @@ TABLERO_PROBLEM = [
     [0, 4, 0, 5, 0, 8, 0, 7, 0]
 ]
 
-# PRE-CALCULO: Guardamos las coordenadas (fila, col) que son fijas
-# para no tener que calcularlo miles de veces por segundo.
+# PRE-CALCULO: Índices fijos
 INDICES_FIJOS = [set() for _ in range(9)]
 for r in range(9):
     for c in range(9):
@@ -34,11 +33,10 @@ for r in range(9):
             INDICES_FIJOS[r].add(c)
 
 # -------------------------------------------------------------------
-# 2. CLASE INDIVIDUO SIMPLIFICADA
+# 2. CLASE INDIVIDUO
 # -------------------------------------------------------------------
 class Individuo:
     def __init__(self, genes=None):
-        # genes es una lista de listas de enteros: [[1,2..], [4,5..]...]
         self.genes = genes
         self.adaptacion = 0.0
 
@@ -46,9 +44,7 @@ class Individuo:
         self.genes = []
         for r in range(9):
             fila_origen = TABLERO_PROBLEM[r]
-            # Números que ya están en la fila (pistas)
             presentes = {x for x in fila_origen if x != 0}
-            # Números que faltan (1 al 9)
             faltantes = [x for x in range(1, 10) if x not in presentes]
             random.shuffle(faltantes)
             
@@ -62,23 +58,20 @@ class Individuo:
             self.genes.append(nueva_fila)
 
 # -------------------------------------------------------------------
-# 3. FUNCIÓN DE ADAPTACIÓN (OPTIMIZADA)
+# 3. FUNCIÓN DE ADAPTACIÓN
 # -------------------------------------------------------------------
 def calcular_adaptacion(individuo):
     errores = 0
     grid = individuo.genes
     
-    # 1. Columnas (recorremos cada columna j)
+    # 1. Columnas
     for c in range(9):
-        # Usamos un set para ver cuántos únicos hay
-        # Al ser lista de listas simple, el acceso es muy rápido
         columna = {grid[r][c] for r in range(9)}
         errores += (9 - len(columna))
 
     # 2. Cuadrantes 3x3
     for r_bloque in (0, 3, 6):
         for c_bloque in (0, 3, 6):
-            # Aplanamos el bloque en un set
             bloque = set()
             for r in range(r_bloque, r_bloque + 3):
                 row = grid[r]
@@ -90,41 +83,34 @@ def calcular_adaptacion(individuo):
     return errores
 
 # -------------------------------------------------------------------
-# 4. OPERADORES GENÉTICOS (SIN DEEPCOPY)
+# 4. OPERADORES GENÉTICOS
 # -------------------------------------------------------------------
-
 def cruce(padre1, padre2):
-    # Cruce uniforme por filas:
-    # El hijo toma filas completas de P1 o P2.
-    # Así mantenemos la restricción de "no repetidos en filas".
     genes_h1 = []
     genes_h2 = []
-    
     for r in range(9):
         if random.random() < 0.5:
-            # Importante: lista[:] crea una copia rápida (no referencia)
             genes_h1.append(padre1.genes[r][:])
             genes_h2.append(padre2.genes[r][:])
         else:
             genes_h1.append(padre2.genes[r][:])
             genes_h2.append(padre1.genes[r][:])
-            
     return Individuo(genes_h1), Individuo(genes_h2)
 
 def mutar(ind):
-    # Intercambio de dos números dentro de una fila (Swap mutation)
-    # Solo tocamos posiciones NO fijas.
-    r = random.randint(0, 8)
-    fila = ind.genes[r]
+    # --- CAMBIO IMPORTANTE PARA LA COMPARATIVA ---
+    # Hacemos 3 cambios para igualar la agresividad de DEAP/NSGA-III
+    # bajo la misma regla del 10% de probabilidad de evento.
+    CAMBIOS = 3 
     
-    # Índices movibles en esta fila (pre-calculados arriba es más rápido, 
-    # pero calcularlo aquí es barato)
-    movibles = [c for c in range(9) if c not in INDICES_FIJOS[r]]
-    
-    if len(movibles) >= 2:
-        idx1, idx2 = random.sample(movibles, 2)
-        # Swap directo
-        fila[idx1], fila[idx2] = fila[idx2], fila[idx1]
+    for _ in range(CAMBIOS):
+        r = random.randint(0, 8)
+        fila = ind.genes[r]
+        movibles = [c for c in range(9) if c not in INDICES_FIJOS[r]]
+        
+        if len(movibles) >= 2:
+            idx1, idx2 = random.sample(movibles, 2)
+            fila[idx1], fila[idx2] = fila[idx2], fila[idx1]
 
 # -------------------------------------------------------------------
 # 5. BLOQUE PRINCIPAL
@@ -132,9 +118,9 @@ def mutar(ind):
 def main():
     intento = 1
     
-    while True: # Bucle infinito de intentos
+    while True: 
         print(f"\n{'='*40}")
-        print(f" >>> INICIANDO INTENTO #{intento} <<<")
+        print(f" >>> INICIANDO INTENTO #{intento} (Manual) <<<")
         print(f"{'='*40}")
         
         # 1. Crear Población
@@ -145,44 +131,37 @@ def main():
             calcular_adaptacion(nuevo)
             poblacion.append(nuevo)
             
-        # Ordenamos una vez al principio
         poblacion.sort(key=lambda x: x.adaptacion)
-        mejor_global = poblacion[0]
-        print(f"Mejor adaptación inicial: {mejor_global.adaptacion}")
         
         # 2. Ciclo Evolutivo
         for gen in range(MAX_GENERACIONES):
             
-            # Si encontramos solución, salimos
             if poblacion[0].adaptacion == 0:
                 print(f"\n{'*'*50}")
                 print(f"¡SOLUCIÓN ENCONTRADA EN INTENTO {intento}, GEN {gen}!")
                 print(f"{'*'*50}")
                 imprimir_tablero(poblacion[0])
-                return # Fin del programa
+                return 
 
-            # Elitismo: Los mejores pasan directo
+            # Elitismo
             num_elite = int(TAMANO_POBLACION * PORCENTAJE_ELITISMO)
             nueva_poblacion = []
             
-            # Copia manual rápida de la élite
             for i in range(num_elite):
-                # Clonamos genes manualmente para evitar deepcopy
                 elite_genes = [fila[:] for fila in poblacion[i].genes]
                 elite_ind = Individuo(elite_genes)
                 elite_ind.adaptacion = poblacion[i].adaptacion
                 nueva_poblacion.append(elite_ind)
             
-            # Rellenar resto de población con cruce y mutación
+            # Cruce y Mutación
             while len(nueva_poblacion) < TAMANO_POBLACION:
-                # Selección Torneo rápida
-                p1 = min(random.sample(poblacion, TAMANO_TORNEO), key=lambda x: x.adaptacion)
-                p2 = min(random.sample(poblacion, TAMANO_TORNEO), key=lambda x: x.adaptacion)
+                sample = random.sample(poblacion, TAMANO_TORNEO * 2)
+                p1 = min(sample[:TAMANO_TORNEO], key=lambda x: x.adaptacion)
+                p2 = min(sample[TAMANO_TORNEO:], key=lambda x: x.adaptacion)
                 
                 if random.random() < PROB_CRUCE:
                     h1, h2 = cruce(p1, p2)
                 else:
-                    # Copia manual si no hay cruce
                     h1 = Individuo([f[:] for f in p1.genes])
                     h2 = Individuo([f[:] for f in p2.genes])
                 
@@ -196,14 +175,12 @@ def main():
                 if len(nueva_poblacion) < TAMANO_POBLACION:
                     nueva_poblacion.append(h2)
             
-            # Reemplazo generacional
             poblacion = nueva_poblacion
             poblacion.sort(key=lambda x: x.adaptacion)
             
             if (gen + 1) % 50 == 0:
                 print(f" Gen {gen+1:3d} | Faltas: {poblacion[0].adaptacion}")
 
-        # Si se acaban las generaciones sin éxito:
         print(f" -> Intento {intento} fallido. Reiniciando...")
         intento += 1
 
